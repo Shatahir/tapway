@@ -10,8 +10,9 @@ import { Router } from '@angular/router';
 export class ImagesGridComponent implements OnInit {
   public images: any = images.images;
   public task: any = images.task;
-  currentPage = 1;
-  itemsPerPage = 8;
+  currentPage: number = 1;
+  itemsPerPage: number = 8;
+  totalItems: number = this.images.length;
 
   constructor(private router: Router) { }
 
@@ -19,13 +20,52 @@ export class ImagesGridComponent implements OnInit {
 
   }
 
+  totalPages(): number[] {
+    const totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+    return Array(totalPages).fill(0).map((x, i) => i + 1);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+  }
+
+  onPageClick(page: number | string): void {
+    if (typeof page === 'number') {
+      this.onPageChange(page);
+    }
+  }
+
+  getPageNumbers(): (number | string)[] {
+    const pages: (number | string)[] = [];
+    const totalPages = this.totalPages();
+    const currentPage = this.currentPage;
+
+    if (totalPages.length <= 5) {
+      pages.push(...totalPages);
+    } else {
+      if (currentPage <= 4) {
+        pages.push(...totalPages.slice(0, 4), '...');
+      } else {
+        pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...');
+      }
+    }
+    return pages;
+  }
+
+  isEllipsis(page: number | string): boolean {
+    return typeof page === 'string';
+  }
+
   getPaginatedImages(): string[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
     return this.images.slice(startIndex, endIndex);
   }
-  totalPages(): number {
-    return Math.ceil(this.images.length / this.itemsPerPage);
+
+  getDisplayRange(): string {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage + 1;
+    const endIndex = Math.min(startIndex + this.itemsPerPage - 1, this.totalItems);
+    return `${startIndex} to ${endIndex} of ${this.totalItems} Entries`;
   }
 
   navigateToImage(imageUrl: any): void {
